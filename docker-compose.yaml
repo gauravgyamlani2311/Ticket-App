@@ -10,7 +10,7 @@ services:
     ports:
       - "8081:80"
     environment:
-      - DB_HOST=db
+      - DB_HOST=db-service
       - DB_NAME=ticket_db
       - DB_USER=root
       - DB_PASS=password
