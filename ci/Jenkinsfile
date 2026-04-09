@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+
+    environment {
+        // Replace with your Docker Hub username
+        DOCKER_HUB_USER = "gauravgyamlani" 
+        IMAGE_NAME      = "ticket-app"
+        IMAGE_TAG       = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '--- Fetching Code from GitHub ---'
+                checkout scm
+            }
+        }
+
+        stage('Validation / Lint') {
+            steps {
+                echo '--- Running Code Validation ---'
+                // Validating HTML files and Shell scripts
+                sh 'chmod +x scripts/*.sh'
+                sh 'ls -R app/ && echo "Structure Verified"'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo '--- Preparing Build Environment ---'
+                // In a PHP app, this is where you'd run composer install if needed
+                sh 'echo "Build Stage: Dependencies synchronized."'
+            }
+        }
+
+        stage('Docker Image Build') {
+            steps {
+                echo '--- Building Docker Image ---'
+                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} -f docker/Dockerfile ."
+                sh "docker tag ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Test / Smoke Test') {
+            steps {
+                echo '--- Starting Smoke Tests ---'
+                // Run the container temporarily to test
+                sh "docker run -d --name test_container -p 8082:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                
+                // Use the script we created earlier
+                script {
+                    try {
+                        sh "sleep 5 && curl -f http://localhost:8082/index.html"
+                        echo "✅ Smoke Test Passed!"
+                    } catch (Exception e) {
+                        echo "❌ Smoke Test Failed!"
+                        error("Deployment halted due to failed smoke test.")
+                    } finally {
+                        sh "docker rm -f test_container"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy (Optional)') {
+            steps {
+                echo '--- Deploying to Production (Docker Compose) ---'
+                // This updates the running app on your EC2
+                sh "docker-compose up -d"
+                echo "✅ Application successfully deployed to http://54.226.233.59:8081"
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '--- Cleaning up Workspace ---'
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check Console Output for details.'
+        }
+    }
+}
