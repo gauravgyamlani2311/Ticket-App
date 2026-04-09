@@ -1,0 +1,9 @@
+.git
+.gitignore
+infra/
+k8s/
+docs/
+backups/
+terraform/
+*.md
+Makefile

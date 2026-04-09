@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: ticket-app-ns
+data:
+  DB_HOST: "db-service"
+  DB_NAME: "ticket_db"
+  DB_USER: "root"
+  APP_ENV: "production"

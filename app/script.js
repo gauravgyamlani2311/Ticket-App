@@ -1,9 +1,10 @@
-document.querySelector("form").addEventListener("submit", function(e) {
-    const name = document.querySelector("input[name='name']").value;
-    const email = document.querySelector("input[name='email']").value;
-
-    if (name === "" || email === "") {
-        alert("All fields are required!");
-        e.preventDefault();
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("TicketApp Frontend Loaded");
+    // Simple logic to highlight the active link
+    const links = document.querySelectorAll('nav a');
+    links.forEach(link => {
+        if (link.href === window.location.href) {
+            link.style.color = '#ff9900';
+        }
+    });
 });

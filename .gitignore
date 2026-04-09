@@ -1,2 +1,14 @@
 kubectl
 minikube-linux-amd64
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Credentials
+*.pem
+
+# OS files
+Thumbs.db
+.DS_Store
