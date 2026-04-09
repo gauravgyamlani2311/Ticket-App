@@ -62,13 +62,21 @@ pipeline {
             }
         }
 
-        stage('Deploy (Optional)') {
+        stage('Deploy to Kubernetes') {
             steps {
-                echo '--- Deploying to Production (Docker Compose) ---'
-                // This updates the running app on your EC2
-                sh "docker-compose up -d"
-                echo "✅ Application successfully deployed to http://54.226.233.59:8081"
+                echo '--- Deploying to K8s Cluster ---'
+                // 1. Apply the Namespace first
+                sh 'kubectl apply -f k8s/base/namespace.yaml'
+                
+                // 2. Apply the rest of the manifests
+                sh 'kubectl apply -f k8s/base/'
+                
+                // 3. Force an update to the deployment to use the new image
+                sh "kubectl set image deployment/ticket-app ticket-web=${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} -n ticket-app-ns"
+                
+                echo "✅ K8s Deployment Updated"
             }
+        
         }
     }
 
