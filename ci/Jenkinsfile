@@ -28,8 +28,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo '--- Preparing Build Environment ---'
-                // In a PHP app, this is where you'd run composer install if needed
-                sh 'echo "Build Stage: Dependencies synchronized."'
+                sh "docker build -t ticket-app:local ."
+                sh "minikube image load ticket-app:local" // Forces the new build into Minikube'
             }
         }
 
@@ -63,20 +63,99 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                echo '--- Deploying to K8s Cluster ---'
-                // 1. Apply the Namespace first
-                sh 'kubectl apply -f k8s/base/namespace.yaml'
-                
-                // 2. Apply the rest of the manifests
-                sh 'kubectl apply -f k8s/base/'
-                
-                // 3. Force an update to the deployment to use the new image
-                sh "kubectl set image deployment/ticket-app ticket-web=${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} -n ticket-app-ns"
-                
-                echo "✅ K8s Deployment Updated"
-            }
+    steps {
+        // Load the specific build image into minikube
+        sh "minikube image load gauravgyamlani/ticket-app:${env.BUILD_NUMBER}"
         
+        // Update the deployment
+        sh "kubectl apply -f k8s/base/deployment.yaml"
+    }
+        
+        }
+    }
+
+    post {
+        always {
+            echo '--- Cleaning up Workspace ---'
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check Console Output for details.'
+        }
+    }
+}pipeline {
+    agent any
+
+    environment {
+        // We will use a consistent local name since we aren't pushing to Hub
+        IMAGE_NAME = "ticket-app"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '--- Fetching Code from GitHub ---'
+                checkout scm
+            }
+        }
+
+        stage('Validation / Lint') {
+            steps {
+                echo '--- Running Code Validation ---'
+                sh 'chmod +x scripts/*.sh || true'
+                sh 'ls -R app/ && echo "Structure Verified"'
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                echo '--- Building Docker Image Locally ---'
+                // We build it with the 'latest' tag for simplicity
+                sh "docker build -t ${IMAGE_NAME}:latest ."
+                
+                echo '--- Loading Image into Minikube ---'
+                // This is the critical step to move the image into the K8s cluster
+                sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
+            }
+        }
+
+        stage('Test / Smoke Test') {
+            steps {
+                echo '--- Starting Smoke Tests ---'
+                // Run the container on port 8082 to verify the build worked
+                sh "docker run -d --name test_container -p 8082:80 ${IMAGE_NAME}:latest"
+                
+                script {
+                    try {
+                        // Wait for Apache to start and check if index.html is reachable
+                        sh "sleep 5 && curl -f http://localhost:8082/index.html"
+                        echo "✅ Smoke Test Passed!"
+                    } catch (Exception e) {
+                        echo "❌ Smoke Test Failed!"
+                        error("Deployment halted due to failed smoke test.")
+                    } finally {
+                        sh "docker rm -f test_container"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo '--- Applying Kubernetes Manifests ---'
+                // Apply all K8s files
+                sh "kubectl apply -f k8s/namespace.yaml"
+                sh "kubectl apply -f k8s/configmap.yaml"
+                sh "kubectl apply -f k8s/deployment.yaml"
+                sh "kubectl apply -f k8s/service.yaml"
+                
+                echo '--- Forcing Pod Refresh ---'
+                // This forces K8s to restart pods using the new image we just loaded
+                sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
+            }
         }
     }
 
