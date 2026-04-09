@@ -23,7 +23,8 @@ pipeline {
         stage('Build Image') {
             steps {
                 echo '--- Building Docker Image Locally ---'
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                // Update the path after -f to where your file actually is
+                sh "docker build -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
                 
                 echo '--- Loading Image into Minikube ---'
                 sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
