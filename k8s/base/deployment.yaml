@@ -42,8 +42,13 @@ spec:
       containers:
       - name: mysql
         image: mysql:8.0
+        # Inside your ticket-app deployment section
         env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "password"
-        - name: MYSQL_DATABASE
-          value: "ticket_db"
+        - name: DB_HOST
+          value: "db-service"   # Must match your Service name
+        - name: DB_NAME
+          value: "ticket_db"    # Must match schema.sql
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASS
+          value: "password"     # Must match db-deployment MYSQL_ROOT_PASSWORD

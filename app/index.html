@@ -2,21 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TicketApp | Home</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Ticket Portal | Gaurav Gyamlani</title>
+    <style>
+        body { font-family: Arial; background: #f4f4f4; text-align: center; }
+        .container { background: white; width: 50%; margin: 50px auto; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ccc; }
+        input { padding: 10px; margin: 10px; width: 80%; }
+        button { background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; }
+    </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
-        <a href="info.php">System Info</a>
-    </nav>
     <div class="container">
         <h1>Welcome to the Ticket Portal</h1>
-        <p>This is a fully functional DevOps assessment application.</p>
-        <button onclick="alert('Booking System Coming Soon!')">Book Now</button>
+        <p>Current Events: IPL 2026, Sunburn Festival</p>
+        
+        <hr>
+        <h3>Book Your Entry</h3>
+        <form action="info.php" method="POST">
+            <input type="text" name="name" placeholder="Enter Your Name" required>
+            <input type="email" name="email" placeholder="Enter Your Email" required>
+            <br>
+            <button type="submit">Confirm Booking</button>
+        </form>
+        <hr>
+        <p><a href="info.php">View Booking Status</a></p>
     </div>
-    <script src="js/script.js"></script>
 </body>
 </html>
