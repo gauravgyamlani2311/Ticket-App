@@ -17,7 +17,7 @@ spec:
       - name: ticket-web
         # MATCHED: This now matches the IMAGE_NAME in your Jenkinsfile
         image: ticket-app:latest  
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         envFrom:
