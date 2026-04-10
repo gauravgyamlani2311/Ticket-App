@@ -1,8 +1,9 @@
 #!/bin/bash
-URL="http://54.226.233.59:8081/index.html"
+# Update the URL to port 30007 and point to the correct file
+URL="http://127.0.0.1:30007/info.php"
 echo "--- Checking Application Health ---"
 
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
 
 if [ "$STATUS" -eq 200 ]; then
     echo "✅ Health Check Passed: Status 200 (OK)"

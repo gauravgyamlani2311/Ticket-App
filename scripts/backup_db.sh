@@ -1,15 +1,20 @@
 #!/bin/bash
-BACKUP_DIR="./backups/db"
-mkdir -p $BACKUP_DIR
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-
 echo "--- Starting Database Backup ---"
-# Note: 'db' is the service name from your docker-compose
-docker-compose exec -T db mysqldump -u root -ppassword ticket_db > $BACKUP_DIR/db_backup_$TIMESTAMP.sql
+
+# This command finds the DB pod name automatically using labels
+DB_POD=$(kubectl get pod -l app=db-app -n ticket-app-ns -o jsonpath='{.items[0].metadata.name}')
+
+if [ -z "$DB_POD" ]; then
+    echo "❌ Error: Database pod not found. Is the container running?"
+    exit 1
+fi
+
+# Run the backup
+kubectl exec $DB_POD -n ticket-app-ns -- mysqldump -u root -ppassword ticket_db > ./backups/db/db_backup_$(date +%Y%m%d_%H%M%S).sql
 
 if [ $? -eq 0 ]; then
-    echo "✅ Database backup completed: $BACKUP_DIR/db_backup_$TIMESTAMP.sql"
+    echo "✅ Database backup completed successfully."
 else
-    echo "❌ Error: Database backup failed. Is the container running?"
+    echo "❌ Error: Database backup failed."
     exit 1
 fi
