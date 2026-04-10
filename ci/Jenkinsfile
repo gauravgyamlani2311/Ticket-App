@@ -21,30 +21,33 @@ pipeline {
         }
 
         stage('Build Image') {
-            steps {
-                echo '--- Building Docker Image Locally ---'
-                // Update the path after -f to where your file actually is
-                sh "docker build -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
-                
-                echo '--- Loading Image into Minikube ---'
-                sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                echo '--- Applying Kubernetes Manifests ---'
-                // Update these paths to match your actual folder structure (e.g., k8s/base/)
-                sh "kubectl apply -f k8s/base/namespace.yaml"
-                sh "kubectl apply -f k8s/base/configmap.yaml"
-                sh "kubectl apply -f k8s/base/deployment.yaml"
-                sh "kubectl apply -f k8s/base/service.yaml"
-                
-                echo '--- Forcing Pod Refresh ---'
-                sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
-            }
+    steps {
+        // Move up one level to the root before building
+        dir('..') { 
+            echo '--- Building Docker Image from Root ---'
+            sh "docker build --no-cache -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
+            sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
         }
     }
+}
+
+        stage('Deploy to Kubernetes') {
+    steps {
+        echo '--- Applying Kubernetes Manifests ---'
+        // Apply changes to namespace, config, etc.
+        sh "kubectl apply -f k8s/namespace.yaml"
+        sh "kubectl apply -f k8s/deployment.yaml"
+        sh "kubectl apply -f k8s/service.yaml"
+        
+        echo '--- Forcing Pod Refresh ---'
+        // This command forces K8s to pull the new 'latest' image
+        sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
+        
+        // This makes Jenkins wait until the new version is actually live
+        sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
+         }
+    }
+}
 
     post {
         always {
