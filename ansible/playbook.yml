@@ -1,0 +1,6 @@
+---
+- name: Infrastructure Setup
+  hosts: webserver
+  roles:
+    - bridge
+    - database
