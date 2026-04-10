@@ -31,13 +31,12 @@ pipeline {
         }
 
         stage('Docker Image Build') {
-            steps {
-                echo '--- Building and Loading Docker Image ---'
-                // Pointing to your docker/ folder as discussed
-                sh "docker build --no-cache -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
-                sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
-            }
-        }
+    steps {
+        sh "docker build -t ticket-app:latest ."
+        // This ensures Minikube has the image BEFORE the deploy stage starts
+        sh "minikube image load ticket-app:latest --overwrite"
+    }
+}
 
         stage('Test / Smoke Test') {
             steps {
