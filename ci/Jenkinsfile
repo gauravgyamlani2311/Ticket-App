@@ -49,25 +49,23 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
     steps {
-        // Move from 'ci/' up to the project root
-        dir('..') {
+        // This ensures we are at the root of the project workspace
+        // where 'k8s' and 'ci' folders are visible as siblings.
+        dir("${env.WORKSPACE}") { 
             echo '--- Deploying from k8s/base directory ---'
             
-            // Apply all YAMLs from the base folder
             sh "kubectl apply -f k8s/base/namespace.yaml"
             sh "kubectl apply -f k8s/base/configmap.yaml"
             sh "kubectl apply -f k8s/base/deployment.yaml"
             sh "kubectl apply -f k8s/base/service.yaml"
             
             echo '--- Forcing Automated Sync ---'
-            // This ensures K8s refreshes the pods with the new image you just built
+            // Restart pods to pick up the 'ticket-app:latest' image we just built
             sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
-            
-            // Optional: wait for the rollout to finish so Jenkins knows it's truly live
             sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
         }
-       }
-    }
+    } 
+ }
  }
 
     post {
