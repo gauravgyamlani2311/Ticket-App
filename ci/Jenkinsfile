@@ -1,5 +1,5 @@
 pipeline {
-    agent any 
+    agent any
 
     environment {
         IMAGE_NAME = "ticket-app"
@@ -13,45 +13,57 @@ pipeline {
             }
         }
 
-        stage('Validation') {
+        stage('Validation / Lint') {
             steps {
                 echo '--- Running Code Validation ---'
-                sh 'ls -R app/ && echo "Structure Verified"'
+                sh "ls -R app/"
+                // Add a basic lint check if you have one, or just verify structure
+                sh "test -f app/index.html && echo 'Structure Verified'"
             }
         }
 
-        stage('Build Image') {
-    steps {
-        // Move up one level to the root before building
-        dir('..') { 
-            echo '--- Building Docker Image from Root ---'
-            sh "docker build --no-cache -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
-            sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
+        stage('Build') {
+            steps {
+                echo '--- Preparing Build Environment ---'
+                // This stage is for pre-compilation or env setup
+                sh "printenv"
+            }
+        }
+
+        stage('Docker Image Build') {
+            steps {
+                echo '--- Building and Loading Docker Image ---'
+                // Pointing to your docker/ folder as discussed
+                sh "docker build --no-cache -t ${IMAGE_NAME}:latest -f docker/Dockerfile ."
+                sh "minikube image load ${IMAGE_NAME}:latest --overwrite"
+            }
+        }
+
+        stage('Test / Smoke Test') {
+            steps {
+                echo '--- Running Smoke Tests ---'
+                // Verify the image exists in Docker locally
+                sh "docker images | grep ${IMAGE_NAME}"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo '--- Deploying to Kubernetes Cluster ---'
+                sh "kubectl apply -f k8s/namespace.yaml"
+                sh "kubectl apply -f k8s/deployment.yaml"
+                sh "kubectl apply -f k8s/service.yaml"
+                
+                echo '--- Forcing Automated Sync ---'
+                sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
+                sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
+            }
         }
     }
-}
-
-        stage('Deploy to Kubernetes') {
-    steps {
-        echo '--- Applying Kubernetes Manifests ---'
-        // Apply changes to namespace, config, etc.
-        sh "kubectl apply -f k8s/namespace.yaml"
-        sh "kubectl apply -f k8s/deployment.yaml"
-        sh "kubectl apply -f k8s/service.yaml"
-        
-        echo '--- Forcing Pod Refresh ---'
-        // This command forces K8s to pull the new 'latest' image
-        sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
-        
-        // This makes Jenkins wait until the new version is actually live
-        sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
-         }
-    }
-}
 
     post {
         always {
-            cleanWs()
+            echo 'Pipeline Execution Finished'
         }
     }
 }
