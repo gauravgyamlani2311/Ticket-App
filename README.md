@@ -70,4 +70,4 @@ Single Node Constraint: Running on Minikube lacks the high availability provided
 
 Persistence Layer: The Socat bridge is a process-level tool and requires manual restart after a host reboot unless converted to a systemd service.
 
-Secrets Management: Credentials are currently managed via environment variables; future iterations will move toward AWS Secrets Manager or Ansible Vault for enhanced security.   
+Secrets Management: Credentials are currently managed via environment variables; future iterations will move toward AWS Secrets Manager or Ansible Vault for enhanced security.
