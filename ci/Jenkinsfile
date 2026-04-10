@@ -47,19 +47,28 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                echo '--- Deploying to Kubernetes Cluster ---'
-                sh "kubectl apply -f k8s/namespace.yaml"
-                sh "kubectl apply -f k8s/deployment.yaml"
-                sh "kubectl apply -f k8s/service.yaml"
-                
-                echo '--- Forcing Automated Sync ---'
-                sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
-                sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
-            }
+        stage('Deploy to Kubernetes') {
+    steps {
+        // Move from 'ci/' up to the project root
+        dir('..') {
+            echo '--- Deploying from k8s/base directory ---'
+            
+            // Apply all YAMLs from the base folder
+            sh "kubectl apply -f k8s/base/namespace.yaml"
+            sh "kubectl apply -f k8s/base/configmap.yaml"
+            sh "kubectl apply -f k8s/base/deployment.yaml"
+            sh "kubectl apply -f k8s/base/service.yaml"
+            
+            echo '--- Forcing Automated Sync ---'
+            // This ensures K8s refreshes the pods with the new image you just built
+            sh "kubectl rollout restart deployment/ticket-app -n ticket-app-ns"
+            
+            // Optional: wait for the rollout to finish so Jenkins knows it's truly live
+            sh "kubectl rollout status deployment/ticket-app -n ticket-app-ns"
         }
+       }
     }
+ }
 
     post {
         always {
