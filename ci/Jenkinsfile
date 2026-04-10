@@ -32,8 +32,13 @@ pipeline {
 
         stage('Docker Image Build') {
     steps {
-        sh "docker build -t ticket-app:latest ."
-        // This ensures Minikube has the image BEFORE the deploy stage starts
+        echo '--- Building Docker Image ---'
+        // -f tells docker where the file is. 
+        // The '.' at the end tells docker to use the current root for COPY commands.
+        sh "docker build -f docker/Dockerfile -t ticket-app:latest ."
+        
+        echo '--- Loading Image into Minikube ---'
+        // This is the critical automation step for Minikube visibility
         sh "minikube image load ticket-app:latest --overwrite"
     }
 }
