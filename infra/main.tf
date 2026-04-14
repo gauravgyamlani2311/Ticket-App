@@ -8,17 +8,16 @@ variable "vpc_id" {
   description = "The ID of the manual VPC"
   default     = "vpc-052dbe1129afa3a93"
 }
-
 variable "subnet_id" {
   description = "The ID of the manual Subnet"
   default     = "subnet-01c33215ab5cb0e1f"
 }
 
-# 3. Find the Security Group (Assuming you named it 'ticket-app-sg')
+# 3. Find the Security Group (Assuming you named it 'Ticket-app-sg')
 data "aws_security_group" "selected" {
   filter {
     name   = "group-name"
-    values = ["Ticket-App-sg"]
+    values = ["Ticket-app-sg"]
   }
   vpc_id = var.vpc_id
 }
