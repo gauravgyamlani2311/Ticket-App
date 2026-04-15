@@ -1,37 +1,68 @@
-# Variables
-COMPOSE=docker compose
+# ==========================================
+# Variables & Constants
+# ==========================================
+DOCKER_COMPOSE = docker compose
+APP_URL        = http://localhost:8081
+SCRIPTS_DIR    = ./scripts
 
-.PHONY: build up down logs test clean
+# List of targets that are not actual files
+.PHONY: build up down logs test clean backup help
 
-# Produce a clean, efficient build
+# ==========================================
+# Core Workflow
+# ==========================================
+
+# 1. Build the stack from scratch without using cache
 build:
-    docker compose build --no-cache
+	$(DOCKER_COMPOSE) build --no-cache
 
-# Run the application via Docker Compose
+# 2. Launch the application in detached (background) mode
 up:
-	docker compose up -d
+	$(DOCKER_COMPOSE) up -d
 
-# Stop all services
+# 3. Stop and remove all running containers
 down:
-	docker compose down
+	$(DOCKER_COMPOSE) down
 
-# Follow logs for debugging
+# 4. Follow application and database logs
 logs:
-	docker compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
-# Functional test: Checks if index and php are reachable
+# ==========================================
+# Testing & Validation
+# ==========================================
+
+# Run automated health checks and smoke tests
 test:
-	@echo "Checking application health..."
-	@curl -f http://localhost:8081/index.html && echo "\n[SUCCESS] Index page is live."
-	@curl -f http://localhost:8081/info.php && echo "\n[SUCCESS] PHP is executing."
-	./scripts/test_smoke.sh
-	./scripts/healthcheck.sh
+	@echo "--- [1/3] Checking HTTP Endpoint ---"
+	@curl -f $(APP_URL)/index.html && echo "\n[OK] Index page reachable."
+	@curl -f $(APP_URL)/info.php && echo "\n[OK] PHP engine functional."
+	@echo "\n--- [2/3] Executing Smoke Tests ---"
+	@chmod +x $(SCRIPTS_DIR)/test_smoke.sh && $(SCRIPTS_DIR)/test_smoke.sh
+	@echo "\n--- [3/3] Executing Deep Healthcheck ---"
+	@chmod +x $(SCRIPTS_DIR)/healthcheck.sh && $(SCRIPTS_DIR)/healthcheck.sh
 
-# Cleanup images and volumes
+# ==========================================
+# Maintenance & Backups
+# ==========================================
+
+# Execute site and database backup scripts
+backup:
+	@echo "Starting backup process..."
+	@chmod +x $(SCRIPTS_DIR)/backup_site.sh && $(SCRIPTS_DIR)/backup_site.sh
+	@chmod +x $(SCRIPTS_DIR)/backup_db.sh && $(SCRIPTS_DIR)/backup_db.sh
+
+# Deep clean: remove containers, volumes, and dangling images
 clean:
-	$(COMPOSE) down -v
+	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-backup:
-	./scripts/backup_site.sh
-	./scripts/backup_db.sh	
+# ==========================================
+# Help Documentation
+# ==========================================
+help:
+	@echo "Available commands:"
+	@echo "  make build  - Build Docker images"
+	@echo "  make up     - Start the application"
+	@echo "  make test   - Run all connectivity tests"
+	@echo "  make clean  - Wipe environment and cached data"
