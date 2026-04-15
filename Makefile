@@ -14,7 +14,7 @@ SCRIPTS_DIR    = ./scripts
 
 # 1. Build the stack from scratch without using cache
 build:
-	$(DOCKER_COMPOSE) build --no-cache
+	docker compose build --no-cache
 
 # 2. Launch the application in detached (background) mode
 up:
