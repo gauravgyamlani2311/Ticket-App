@@ -5,19 +5,19 @@ COMPOSE=docker compose
 
 # Produce a clean, efficient build
 build:
-	$(COMPOSE) build --no-cache
+    docker compose build --no-cache
 
 # Run the application via Docker Compose
 up:
-	$(COMPOSE) up -d
+	docker compose up -d
 
 # Stop all services
 down:
-	$(COMPOSE) down
+	docker compose down
 
 # Follow logs for debugging
 logs:
-	$(COMPOSE) logs -f
+	docker compose logs -f
 
 # Functional test: Checks if index and php are reachable
 test:
