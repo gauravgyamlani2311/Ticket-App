@@ -1,39 +1,36 @@
-Project Directory Structure
 Ticket-App/
-├── ansible/ (Configuration Management)
-│   ├── roles/ (Modular Automation)
-│   │   ├── bridge/ (Socat/Network automation logic)
-│   │   └── database/ (MySQL configuration & init tasks)
-│   ├── inventory.ini (Target server definitions)
-│   └── playbook.yml (Main execution entry point)
-├── app/ (Application Layer - PHP/Web)
-│   ├── config/ (Environment templates e.g., app.env.example)
-│   ├── db/ (SQL assets: schema.sql, seed.sql)
-│   ├── info.php (Connectivity & health test page)
-│   ├── index.html (Main landing page)
-│   └── style.css (Application styling)
-├── ci/ (Continuous Integration)
-│   └── Jenkinsfile (Declarative Build/Deploy logic)
-├── docker/ (Containerization)
-│   └── Dockerfile (Multi-stage Apache/PHP build)
-├── docs/ (Project Documentation & Runbooks)
-│   ├── architecture.png (System design diagram)
-│   ├── architecture.md (Technical design specs)
-│   └── day1-runbook.md (Step-by-step deployment guide)
-├── infra/ (Infrastructure as Code - Terraform)
-│   ├── main.tf (AWS Resource definitions)
-│   └── .terraform/ (Provider binaries)
-├── k8s/base/ (Kubernetes Orchestration)
-│   ├── deployment.yaml (Pod & ReplicaSet definitions)
-│   ├── service.yaml (Internal/External networking)
-│   ├── configmap.yaml (Environment variables & DB Credentials)
-│   └── ingress.yaml (Layer 7 Routing rules)
-├── scripts/ (Operational Maintenance)
-│   ├── healthcheck.sh (HTTP status verification)
-│   ├── backup_db.sh (SQL dump automation)
-│   └── restore_all.sh (Environment reset script)
-├── Makefile (CLI shortcuts for builds/deploys)
-└── docker-compose.yaml (Local development orchestration)
+├── ansible/             # Configuration Management
+│   ├── roles/           # Modular Automation logic
+│   │   ├── bridge/      # Socat/Network automation
+│   │   └── database/    # MySQL configuration & init
+│   ├── inventory.ini    # Target server definitions
+│   └── playbook.yml     # Main execution entry point
+├── app/                 # Application Layer (PHP/Web)
+│   ├── config/          # Environment templates
+│   ├── db/              # SQL assets (schema.sql, seed.sql)
+│   ├── info.php         # Connectivity & health test page
+│   ├── index.html       # Main landing page
+│   └── style.css        # Application styling
+├── ci/                  # Continuous Integration
+│   └── Jenkinsfile      # Declarative Build/Deploy logic
+├── docker/              # Containerization
+│   └── Dockerfile       # Multi-stage Apache/PHP build
+├── docs/                # Project Documentation & Runbooks
+│   ├── architecture.png # System design diagram
+│   └── day1-runbook.md  # Step-by-step deployment guide
+├── infra/               # Infrastructure as Code (Terraform)
+│   └── main.tf          # AWS Resource definitions
+├── k8s/base/            # Kubernetes Orchestration
+│   ├── deployment.yaml  # Pod & ReplicaSet definitions
+│   ├── service.yaml     # Internal/External networking
+│   ├── configmap.yaml   # Environment variables & DB Credentials
+│   └── ingress.yaml     # Layer 7 Routing rules
+├── scripts/             # Operational Maintenance
+│   ├── healthcheck.sh   # HTTP status verification
+│   ├── backup_db.sh     # SQL dump automation
+│   └── restore_all.sh   # Environment reset script
+├── Makefile             # CLI shortcuts for builds/deploys
+└── docker-compose.yaml  # Local development orchestration
 
 Project Overview
 The Ticket-App is a DevOps-centric project demonstrating the full lifecycle of a web application. It integrates Cloud Infrastructure (AWS), Infrastructure as Code (Terraform), Configuration Management (Ansible), and Container Orchestration (Kubernetes). The primary goal is to showcase a self-healing, automated deployment pipeline that minimizes manual intervention and ensures environment consistency.
