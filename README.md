@@ -1,111 +1,205 @@
-Ticket-App/
-├── ansible/             # Configuration Management
-│   ├── roles/           # Modular Automation logic
-│   │   ├── bridge/      # Socat/Network automation
-│   │   └── database/    # MySQL configuration & init
-│   ├── inventory.ini    # Target server definitions
-│   └── playbook.yml     # Main execution entry point
-├── app/                 # Application Layer (PHP/Web)
-│   ├── config/          # Environment templates
-│   ├── db/              # SQL assets (schema.sql, seed.sql)
-│   ├── info.php         # Connectivity & health test page
-│   ├── index.html       # Main landing page
-│   └── style.css        # Application styling
-├── ci/                  # Continuous Integration
-│   └── Jenkinsfile      # Declarative Build/Deploy logic
-├── docker/              # Containerization
-│   └── Dockerfile       # Multi-stage Apache/PHP build
-├── docs/                # Project Documentation & Runbooks
-│   ├── architecture.png # System design diagram
-│   └── day1-runbook.md  # Step-by-step deployment guide
-├── infra/               # Infrastructure as Code (Terraform)
-│   └── main.tf          # AWS Resource definitions
-├── k8s/base/            # Kubernetes Orchestration
-│   ├── deployment.yaml  # Pod & ReplicaSet definitions
-│   ├── service.yaml     # Internal/External networking
-│   ├── configmap.yaml   # Environment variables & DB Credentials
-│   └── ingress.yaml     # Layer 7 Routing rules
-├── scripts/             # Operational Maintenance
-│   ├── healthcheck.sh   # HTTP status verification
-│   ├── backup_db.sh     # SQL dump automation
-│   └── restore_all.sh   # Environment reset script
-├── Makefile             # CLI shortcuts for builds/deploys
-└── docker-compose.yaml  # Local development orchestration
+# DevOps-Ready Web Application
 
-Project Overview
-The Ticket-App is a DevOps-centric project demonstrating the full lifecycle of a web application. It integrates Cloud Infrastructure (AWS), Infrastructure as Code (Terraform), Configuration Management (Ansible), and Container Orchestration (Kubernetes). The primary goal is to showcase a self-healing, automated deployment pipeline that minimizes manual intervention and ensures environment consistency.
+## Project Overview
 
-Setup Instructions
-1. Prerequisites
+This project demonstrates a complete DevOps workflow for deploying and managing a PHP-based web application with a MySQL backend on AWS infrastructure. It includes application development, containerization, CI/CD pipeline design, Kubernetes deployment, infrastructure-as-code, and operational scripting.
 
-AWS Account: IAM user with programmatic access and EC2 management permissions.
+The application provides a simple website with multiple pages (Home, About, Contact) and supports form submission with persistent storage in a MySQL database.
 
-Control Machine: Local workstation with Terraform, Ansible, and Git installed.
+---
 
-SSH Access: Configured SSH keys for secure communication with AWS instances.
+## Repository Structure
 
-2. Local Initialization
+app/        → Application source (HTML, PHP, DB config, SQL)
+docker/     → Dockerfile and Docker Compose setup
+ci/         → Jenkins pipeline definition
+k8s/        → Kubernetes manifests (base setup)
+infra/      → Terraform and Ansible configuration (AWS provisioning)
+scripts/    → Operational scripts (backup, restore, healthcheck, etc.)
+docs/       → Runbooks, architecture, validation
+logs/       → Runtime logs
+Makefile    → Command automation
+README.md   → Project documentation
 
-Clone the Repository: Download the project using git clone https://github.com/gauravgyamlani2311/Ticket-App.git.
+---
 
-Infrastructure Provisioning: Navigate to the infra/ folder. Run terraform init followed by terraform apply to create the EC2 instance.
+## Setup Instructions
 
-How to Run on AWS EC2
-The application is optimized to run on a single t3.medium instance using Minikube for a cost-effective yet powerful Kubernetes demonstration.
+### Prerequisites
 
-Cluster Start: Connect via SSH and run minikube start --driver=docker.
+* AWS Account (IAM user with EC2 permissions)
+* Terraform
+* Ansible
+* Docker
+* Kubernetes (Minikube)
+* kubectl
+* Jenkins (optional)
+* Make
+* SSH key configured for EC2
 
-Automation: Execute the Ansible playbook (ansible-playbook -i ansible/inventory.ini ansible/playbook.yml) to configure Docker permissions and networking.
+---
 
-K8s Deployment: Apply the manifests using kubectl apply -f k8s/base/.
+### Clone Repository
 
-Networking: Since Minikube is internal to the EC2, use socat in the background to bridge traffic: nohup socat TCP-LISTEN:8081,fork,reuseaddr TCP:$(minikube ip):30007 &.
+git clone <repo-url>
+cd Ticket-App
 
-Database Init: Manually import the schema into the MySQL pod: kubectl exec -i  -n ticket-app-ns -- mysql -u root -ppassword ticket_db < app/db/schema.sql.
+---
 
-How to Run via Docker
-For local development where Kubernetes overhead is not required, use the Docker Compose stack.
+## How to Run on AWS (EC2)
 
-Image Construction: Build the local images using docker-compose build.
+### Provision Infrastructure
 
-Stack Launch: Start the environment with docker-compose up -d.
+cd infra
+terraform init
+terraform apply
 
-Local Access: View the application at http://localhost:8080.
+This creates EC2 instance and networking components.
 
-CI/CD Explanation
-The project utilizes a declarative Jenkins Pipeline (located in ci/Jenkinsfile) to manage the software delivery lifecycle.
+---
 
-Continuous Integration: GitHub webhooks trigger the pipeline on every push to the main branch.
+### Connect to EC2
 
-Image Sideloading: Instead of pushing to a public registry, the pipeline builds the image on the EC2 host and uses minikube image load to inject it directly into the cluster.
+ssh -i your-key.pem ubuntu@<EC2-PUBLIC-IP>
 
-Deployment Policy: The K8s deployment uses imagePullPolicy: IfNotPresent, forcing the cluster to use the newly sideloaded local image.
+---
 
-Automated Validation: The pipeline includes stages for linting and smoke testing before confirming a successful rollout.
+### Configure Environment (Ansible)
 
-Kubernetes Approach
-The system architecture follows a microservices pattern designed for high availability within the cluster.
+ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
 
-Resource Isolation: All project components (PHP frontend and MySQL backend) are isolated in the ticket-app-ns namespace.
+---
 
-Service Discovery: The PHP app communicates with the database using the internal DNS name db-service, ensuring connectivity even if pod IPs change.
+### Start Kubernetes Cluster
 
-Environment Management: Credentials and database names are managed via ConfigMaps, allowing for easy environment switching (Dev/Prod) without changing application code.
+minikube start --driver=docker
 
-Scripts Usage
-A suite of Bash scripts in the scripts/ directory simplifies common operational tasks:
+---
 
-healthcheck.sh: Sends HTTP requests to the public endpoint to verify a 200 OK response.
+### Deploy Application
 
-test_smoke.sh: Execs into the application pod to verify internal connectivity to the database.
+kubectl apply -f k8s/base/
 
-backup_db.sh: Performs a mysqldump from the running Kubernetes pod to create timestamped SQL backups.
+---
 
-restore_all.sh: A disaster recovery script that wipes the namespace and redeploys the entire stack.
+## How to Run via Docker (Manual Build)
 
-Known Limitations
-Single-Node Cluster: Using Minikube is ideal for cost-savings but lacks the multi-zone redundancy of a full AWS EKS cluster.
+eval $(minikube docker-env)
+docker build -t ticket-app:latest -f docker/Dockerfile .
 
-Process-Based Bridge: The socat bridge is a background process; in a production environment, an Ingress Controller or AWS Load Balancer would be used for persistence.
+---
 
-Secrets Management: Currently, database passwords are stored in ConfigMaps. Future updates will transition to AWS Secrets Manager for enhanced security.
+## Kubernetes Deployment
+
+### Apply Manifests
+
+kubectl apply -f k8s/base/
+
+### Verify
+
+kubectl get pods -n ticket-app-ns
+kubectl get svc -n ticket-app-ns
+
+---
+
+## Access Application (AWS Setup)
+
+nohup socat TCP-LISTEN:8081,fork,reuseaddr TCP:$(minikube ip):30007 &
+
+Access in browser:
+http://<EC2-PUBLIC-IP>:8081
+
+---
+
+## CI/CD Pipeline (Jenkins)
+
+Pipeline stages:
+
+* Checkout code
+* Validation / linting
+* Application build
+* Docker image build
+* Smoke testing
+* Deployment (Kubernetes)
+
+Image is built on EC2 and loaded into Minikube using:
+minikube image load
+
+---
+
+## Infrastructure Approach
+
+### Terraform
+
+* Provisions AWS infrastructure (EC2, networking)
+* Defines resources using Infrastructure-as-Code
+
+### Ansible
+
+* Automates EC2 configuration
+* Installs dependencies
+* Deploys application
+* Performs health checks
+
+---
+
+## Scripts Usage
+
+All scripts are located in:
+scripts/
+
+Backup Database
+./scripts/backup_db.sh
+
+Backup Site
+./scripts/backup_site.sh
+
+Restore Application & Database
+./scripts/restore_all.sh
+
+Health Check
+./scripts/healthcheck.sh
+
+Smoke Test
+./scripts/test_smoke.sh
+
+Log Review
+./scripts/log_review.sh
+
+---
+
+## Makefile Commands
+
+make build     → Build application
+make up        → Start services
+make down      → Stop services
+make logs      → View logs
+make test      → Run smoke tests
+make clean     → Cleanup resources
+
+---
+
+## Validation
+
+* Application accessible via http://<EC2-PUBLIC-IP>:8081
+* Kubernetes pods running successfully
+* Database connectivity verified
+* Data insertion confirmed via SQL queries
+* Healthcheck and smoke tests returning HTTP 200
+* Backup and restore scripts validated
+
+---
+
+## Known Limitations
+
+* Application exposed via socat bridge (not production-grade)
+* Single-node cluster using Minikube
+* MySQL access via Kubernetes exec
+* Terraform setup is basic
+* Logging is file-based
+
+---
+
+## Conclusion
+
+This project demonstrates a structured DevOps workflow on AWS infrastructure, covering application deployment, containerization, CI/CD, Kubernetes orchestration, infrastructure automation, and operational tooling, ensuring a reliable and reproducible environment.
