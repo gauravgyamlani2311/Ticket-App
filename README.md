@@ -11,14 +11,23 @@ The application provides a simple website with multiple pages (Home, About, Cont
 ## Repository Structure
 
 app/        → Application source (HTML, PHP, DB config, SQL)
+
 docker/     → Dockerfile and Docker Compose setup
+
 ci/         → Jenkins pipeline definition
+
 k8s/        → Kubernetes manifests (base setup)
+
 infra/      → Terraform and Ansible configuration (AWS provisioning)
+
 scripts/    → Operational scripts (backup, restore, healthcheck, etc.)
+
 docs/       → Runbooks, architecture, validation
+
 logs/       → Runtime logs
+
 Makefile    → Command automation
+
 README.md   → Project documentation
 
 ---
