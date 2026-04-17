@@ -1,20 +1,20 @@
 # ==========================================
 # Variables & Constants
 # ==========================================
-DOCKER_COMPOSE = docker compose
-APP_URL        = http://localhost:8081
+DOCKER_COMPOSE = docker-compose
+APP_URL        = http://192.168.49.2:30007
 SCRIPTS_DIR    = ./scripts
 
 # List of targets that are not actual files
-.PHONY: build up down logs test clean backup help
+.PHONY: build up down logs test clean backup help        
 
 # ==========================================
 # Core Workflow
 # ==========================================
 
-# 1. Build the stack from scratch without using cache
+# 1. Build the stack from scratch without using cache    
 build:
-	docker compose build --no-cache
+	$(DOCKER_COMPOSE) build --no-cache
 
 # 2. Launch the application in detached (background) mode
 up:
@@ -25,8 +25,9 @@ down:
 	$(DOCKER_COMPOSE) down
 
 # 4. Follow application and database logs
+# FIXED: Changed from 'docker-compose' to use the variable defined above
 logs:
-	$(DOCKER_COMPOSE) logs -f
+	$(DOCKER_COMPOSE) logs
 
 # ==========================================
 # Testing & Validation
@@ -42,27 +43,4 @@ test:
 	@echo "\n--- [3/3] Executing Deep Healthcheck ---"
 	@chmod +x $(SCRIPTS_DIR)/healthcheck.sh && $(SCRIPTS_DIR)/healthcheck.sh
 
-# ==========================================
-# Maintenance & Backups
-# ==========================================
-
-# Execute site and database backup scripts
-backup:
-	@echo "Starting backup process..."
-	@chmod +x $(SCRIPTS_DIR)/backup_site.sh && $(SCRIPTS_DIR)/backup_site.sh
-	@chmod +x $(SCRIPTS_DIR)/backup_db.sh && $(SCRIPTS_DIR)/backup_db.sh
-
-# Deep clean: remove containers, volumes, and dangling images
-clean:
-	$(DOCKER_COMPOSE) down -v
-	docker system prune -f
-
-# ==========================================
-# Help Documentation
-# ==========================================
-help:
-	@echo "Available commands:"
-	@echo "  make build  - Build Docker images"
-	@echo "  make up     - Start the application"
-	@echo "  make test   - Run all connectivity tests"
-	@echo "  make clean  - Wipe environment and cached data"
+# ... (rest of your file stays the same)

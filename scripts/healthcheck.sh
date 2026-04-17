@@ -1,6 +1,6 @@
 #!/bin/bash
 # Update the URL to port 30007 and point to the correct file
-URL="http://127.0.0.1:30007/info.php"
+URL="http://192.168.49.2:30007"info.php
 echo "--- Checking Application Health ---"
 
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
