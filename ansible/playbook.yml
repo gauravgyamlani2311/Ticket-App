@@ -40,3 +40,31 @@
         name: socat-bridge
         enabled: yes
         state: started
+    
+    - name: Install Jenkins GPG Key
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        state: present
+
+    - name: Add Jenkins Repository
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: Install Java and Jenkins
+      apt:
+        name: [openjdk-17-jdk, jenkins]
+        update_cache: yes
+        state: present
+
+    - name: Ensure Jenkins is in the Docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    - name: Start and Enable Jenkins
+      systemd:
+        name: jenkins
+        enabled: yes
+        state: started
