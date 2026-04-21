@@ -1,7 +1,0 @@
----
-- name: Ensure Socat bridge is running
-  shell: |
-    sudo pkill -9 socat || true
-    sudo nohup socat TCP4-LISTEN:30007,fork,reuseaddr,bind=0.0.0.0 TCP4:$(minikube ip):30007 > /dev/null 2>&1 &
-  async: 10
-  poll: 0

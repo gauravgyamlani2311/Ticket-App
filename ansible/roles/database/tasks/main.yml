@@ -1,6 +1,0 @@
----
-- name: Create users table in ticket-db
-  shell: |
-    DB_POD=$(kubectl get pod -l app=ticket-db -n ticket-app-ns -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec $DB_POD -n ticket-app-ns -- mysql -u root -ppassword -e \
-    "CREATE DATABASE IF NOT EXISTS ticket_db; USE ticket_db; CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), email VARCHAR(100));"
