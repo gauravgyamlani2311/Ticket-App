@@ -1,6 +1,7 @@
 #!/bin/bash
-# Update the URL to port 30007 and point to the correct file
-URL="http://192.168.49.2:30007"info.php
+# Fixed: Corrected quote placement and switched to the Socat bridge port
+URL="http://localhost:8081/info.php"
+
 echo "--- Checking Application Health ---"
 
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
