@@ -1,8 +1,10 @@
 ---
-- name: Full DevOps Environment Recovery
-  hosts: devops
+- name: Local DevOps Environment Recovery
+  hosts: localhost
+  connection: local
   become: yes
   tasks:
+    # ... (rest of your tasks remain the same)
     - name: Update apt and install dependencies
       apt:
         name: [curl, socat, conntrack, git]
